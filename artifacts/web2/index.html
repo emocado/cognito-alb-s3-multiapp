@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project Orion - Security & Compliance</title>
+  <meta name="description" content="Security architecture audit and cookie posture verification generated with Lavish.">
+  <!-- Tailwind CSS v4 + DaisyUI v5 CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+  </style>
+</head>
+<body class="min-h-screen bg-base-300 text-base-content flex flex-col">
+
+  <!-- Navbar with Back to Main Portal link -->
+  <header class="navbar bg-base-100 border-b border-base-content/10 px-4 lg:px-8 sticky top-0 z-50">
+    <div class="navbar-start flex items-center gap-3">
+      <a href="/main/index.html" class="btn btn-sm btn-ghost gap-2 text-primary">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        <span>Back to Catalog</span>
+      </a>
+      <div class="divider divider-horizontal my-2 hidden sm:flex"></div>
+      <div>
+        <span class="text-xl font-bold tracking-tight">Project Orion</span>
+        <span class="badge badge-soft badge-secondary badge-sm ml-2">/web2/index.html</span>
+      </div>
+    </div>
+
+    <div class="navbar-end gap-2">
+      <a href="/web1/index.html" class="btn btn-sm btn-outline btn-primary gap-1">
+        <span>Go to Web1 (Phoenix)</span>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+        </svg>
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-8 space-y-6">
+    <div class="alert alert-success alert-soft">
+      <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+      <div>
+        <h3 class="font-bold">Zero Re-Authentication Flow Passed</h3>
+        <div class="text-xs">Switched from <code>/web1/index.html</code> to <code>/web2/index.html</code> seamlessly. The ALB verified your cookie at Layer 7.</div>
+      </div>
+    </div>
+
+    <!-- Security Posture Details -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="card card-border bg-base-100 shadow-md">
+        <div class="card-body p-6">
+          <h2 class="card-title text-lg font-bold">ALB Session Cookie Architecture</h2>
+          <p class="text-xs text-base-content/70 mt-1">
+            The ALB automatically injects and verifies user identity claims at the load balancer edge before requests reach the S3 VPC Endpoint.
+          </p>
+
+          <div class="mt-4 space-y-3">
+            <div class="flex items-center justify-between p-3 bg-base-200/50 rounded-lg text-xs">
+              <span class="font-mono text-base-content/80">AWSELBAuthSessionCookie</span>
+              <span class="badge badge-success badge-xs">Encrypted &amp; Scoped</span>
+            </div>
+            <div class="flex items-center justify-between p-3 bg-base-200/50 rounded-lg text-xs">
+              <span class="font-mono text-base-content/80">x-amzn-oidc-identity</span>
+              <span class="badge badge-info badge-xs">User Sub Claim</span>
+            </div>
+            <div class="flex items-center justify-between p-3 bg-base-200/50 rounded-lg text-xs">
+              <span class="font-mono text-base-content/80">x-amzn-oidc-data</span>
+              <span class="badge badge-info badge-xs">Signed User JWT</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card card-border bg-base-100 shadow-md">
+        <div class="card-body p-6">
+          <h2 class="card-title text-lg font-bold">S3 Bucket Security Compliance</h2>
+          <p class="text-xs text-base-content/70 mt-1">
+            Data isolation and access control enforced via PrivateLink Condition Key:
+          </p>
+
+          <div class="mockup-code text-xs mt-3 bg-base-200 text-base-content">
+            <pre data-prefix="1"><code>{</code></pre>
+            <pre data-prefix="2"><code>  "Effect": "Allow",</code></pre>
+            <pre data-prefix="3"><code>  "Action": ["s3:GetObject", "s3:ListBucket"],</code></pre>
+            <pre data-prefix="4"><code>  "Condition": {</code></pre>
+            <pre data-prefix="5" class="bg-warning/20 text-warning font-semibold"><code>    "StringEquals": { "aws:sourceVpce": "vpce-*" }</code></pre>
+            <pre data-prefix="6"><code>  }</code></pre>
+            <pre data-prefix="7"><code>}</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer footer-center p-4 bg-base-100 text-base-content/60 border-t border-base-content/10 text-xs">
+    <div>
+      <p>Project Orion • Lavish Generated Static Artifact • Audited for AWS Well-Architected Security</p>
+    </div>
+  </footer>
+</body>
+</html>

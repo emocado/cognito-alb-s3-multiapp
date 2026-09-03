@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project Phoenix - Analytics Dashboard</title>
+  <meta name="description" content="Operational KPI and traffic telemetry dashboard generated with Lavish.">
+  <!-- Tailwind CSS v4 + DaisyUI v5 CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+  </style>
+</head>
+<body class="min-h-screen bg-base-300 text-base-content flex flex-col">
+
+  <!-- Navbar with Back to Main Portal link -->
+  <header class="navbar bg-base-100 border-b border-base-content/10 px-4 lg:px-8 sticky top-0 z-50">
+    <div class="navbar-start flex items-center gap-3">
+      <a href="/main/index.html" class="btn btn-sm btn-ghost gap-2 text-primary">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        <span>Back to Catalog</span>
+      </a>
+      <div class="divider divider-horizontal my-2 hidden sm:flex"></div>
+      <div>
+        <span class="text-xl font-bold tracking-tight">Project Phoenix</span>
+        <span class="badge badge-soft badge-primary badge-sm ml-2">/web1/index.html</span>
+      </div>
+    </div>
+
+    <div class="navbar-end gap-2">
+      <a href="/web2/index.html" class="btn btn-sm btn-outline btn-secondary gap-1">
+        <span>Go to Web2 (Orion)</span>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+        </svg>
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-8 space-y-6">
+    <div class="alert alert-info alert-soft">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+      <div>
+        <h3 class="font-bold">SSO Authentication Verified</h3>
+        <div class="text-xs">You accessed <code>/web1/index.html</code> directly using the ALB Cognito session cookie without logging in again!</div>
+      </div>
+    </div>
+
+    <!-- Stats Section -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="stat bg-base-100 rounded-box border border-base-content/10 shadow-sm">
+        <div class="stat-figure text-primary">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+        </div>
+        <div class="stat-title text-xs">Request Latency</div>
+        <div class="stat-value text-primary text-2xl">4.2 ms</div>
+        <div class="stat-desc">S3 VPC Endpoint direct</div>
+      </div>
+
+      <div class="stat bg-base-100 rounded-box border border-base-content/10 shadow-sm">
+        <div class="stat-figure text-secondary">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+        </div>
+        <div class="stat-title text-xs">Active Session</div>
+        <div class="stat-value text-secondary text-2xl">Valid</div>
+        <div class="stat-desc">AWSELBAuthSessionCookie</div>
+      </div>
+
+      <div class="stat bg-base-100 rounded-box border border-base-content/10 shadow-sm">
+        <div class="stat-figure text-accent">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+        </div>
+        <div class="stat-title text-xs">Target Group Health</div>
+        <div class="stat-value text-accent text-2xl">100%</div>
+        <div class="stat-desc">All ENI IPs Healthy</div>
+      </div>
+
+      <div class="stat bg-base-100 rounded-box border border-base-content/10 shadow-sm">
+        <div class="stat-figure text-success">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-8 h-8 stroke-current"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        </div>
+        <div class="stat-title text-xs">Zero Server Compute</div>
+        <div class="stat-value text-success text-2xl">Serverless</div>
+        <div class="stat-desc">No EC2 / No Lambda Proxy</div>
+      </div>
+    </div>
+
+    <!-- Telemetry Table -->
+    <div class="card card-border bg-base-100 shadow-md">
+      <div class="card-body p-6">
+        <h2 class="card-title text-xl font-bold">Phoenix Telemetry &amp; Health Checks</h2>
+        <div class="overflow-x-auto mt-4">
+          <table class="table table-zebra">
+            <thead>
+              <tr>
+                <th>Service Layer</th>
+                <th>Routing Component</th>
+                <th>Protocol</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="font-bold">Authentication Gate</td>
+                <td>ALB HTTPS Listener (443)</td>
+                <td>OIDC Cognito</td>
+                <td><span class="badge badge-success badge-sm">Active</span></td>
+              </tr>
+              <tr>
+                <td class="font-bold">PrivateLink Transport</td>
+                <td>AWS S3 Interface Endpoint</td>
+                <td>HTTP / Port 80</td>
+                <td><span class="badge badge-success badge-sm">Connected</span></td>
+              </tr>
+              <tr>
+                <td class="font-bold">Static Storage</td>
+                <td>Amazon S3 Bucket</td>
+                <td>Virtual Hosted Style</td>
+                <td><span class="badge badge-success badge-sm">Direct Match</span></td>
+              </tr>
+              <tr>
+                <td class="font-bold">TLS Termination</td>
+                <td>AWS Certificate Manager</td>
+                <td>Self-Signed X.509</td>
+                <td><span class="badge badge-warning badge-sm">POC Self-Signed</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer footer-center p-4 bg-base-100 text-base-content/60 border-t border-base-content/10 text-xs">
+    <div>
+      <p>Project Phoenix • Lavish Generated Static Artifact • Served directly from S3 via VPC Endpoint</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enterprise Portal - Application Catalog</title>
+  <meta name="description" content="Central catalog dynamically discovering all hosted static web applications and Lavish artifacts.">
+  <!-- Tailwind CSS v4 + DaisyUI v5 CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+  </style>
+</head>
+<body class="min-h-screen bg-base-300 text-base-content flex flex-col">
+
+  <!-- Navbar -->
+  <header class="navbar bg-base-100 border-b border-base-content/10 px-4 lg:px-8 sticky top-0 z-50">
+    <div class="navbar-start flex items-center gap-3">
+      <div class="p-2 bg-primary/10 rounded-xl text-primary font-bold flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+        </svg>
+      </div>
+      <div>
+        <span class="text-xl font-bold tracking-tight">AppHub Central</span>
+        <span class="badge badge-soft badge-primary badge-sm ml-2">ALB + S3 PrivateLink</span>
+      </div>
+    </div>
+
+    <div class="navbar-end gap-2">
+      <div class="indicator">
+        <span class="indicator-item badge badge-xs badge-success"></span>
+        <span class="badge badge-outline text-xs py-2 px-3">Cognito Authenticated</span>
+      </div>
+      <button onclick="fetchCatalog()" class="btn btn-sm btn-ghost gap-2" title="Rescan S3 bucket">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+        <span class="hidden sm:inline">Refresh</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-8 space-y-8">
+    <section class="card card-border bg-base-100 shadow-md">
+      <div class="card-body p-6 md:p-8">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 class="text-3xl font-extrabold tracking-tight">Artifact & Application Catalog</h1>
+            <p class="text-base-content/70 mt-1 max-w-2xl text-sm md:text-base">
+              All apps below are hosted as static artifacts on private Amazon S3 and securely served via ALB &amp; S3 Interface VPC Endpoint. New folders (e.g. <code class="badge badge-sm badge-neutral">/web3/index.html</code>) are dynamically discovered automatically.
+            </p>
+          </div>
+          <div class="stats stats-horizontal bg-base-200 border border-base-content/10">
+            <div class="stat py-2 px-4">
+              <div class="stat-title text-xs">Total Sites</div>
+              <div class="stat-value text-2xl text-primary" id="siteCount">-</div>
+            </div>
+            <div class="stat py-2 px-4">
+              <div class="stat-title text-xs">Discovery Mode</div>
+              <div class="stat-value text-sm text-success font-semibold flex items-center gap-1 mt-1">
+                <span class="h-2 w-2 rounded-full bg-success inline-block animate-pulse"></span> Dynamic S3
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter & Search Bar -->
+        <div class="divider my-4"></div>
+        <div class="flex flex-col sm:flex-row gap-3 items-center justify-between">
+          <div class="w-full sm:w-80">
+            <label class="input input-sm input-bordered flex items-center gap-2 w-full">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-4 h-4 opacity-70"><path fill-rule="evenodd" d="M9.965 11.026a5 5 0 1 1 1.06-1.06l2.755 2.754a.75.75 0 1 1-1.06 1.06l-2.755-2.754ZM10.5 7a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Z" clip-rule="evenodd" /></svg>
+              <input type="text" id="searchInput" placeholder="Search applications..." class="grow" oninput="filterCards()" />
+            </label>
+          </div>
+          <div class="text-xs text-base-content/60 flex items-center gap-1" id="lastUpdated">
+            Scanning S3 bucket...
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Catalog Grid -->
+    <section>
+      <div id="loadingIndicator" class="flex flex-col items-center justify-center p-16 space-y-3">
+        <span class="loading loading-spinner loading-lg text-primary"></span>
+        <span class="text-sm text-base-content/70">Scanning S3 bucket prefixes via VPC Endpoint...</span>
+      </div>
+
+      <div id="cardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden">
+        <!-- Cards dynamically injected here -->
+      </div>
+
+      <div id="emptyState" class="card card-border bg-base-100 p-12 text-center hidden">
+        <h3 class="text-lg font-bold">No Applications Found</h3>
+        <p class="text-sm text-base-content/60 mt-1">No subfolders containing <code class="text-primary">index.html</code> were found in this S3 bucket.</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer footer-center p-6 bg-base-100 text-base-content/60 border-t border-base-content/10 text-xs">
+    <div>
+      <p>Single Sign-On Architecture • AWS Cognito + Application Load Balancer + S3 Interface VPC Endpoint</p>
+      <p class="mt-1">Zero code authentication gate • Artifacts generated by Lavish</p>
+    </div>
+  </footer>
+
+  <script>
+    let discoveredApps = [];
+
+    // Metadata defaults for known prefixes
+    const KNOWN_METADATA = {
+      'web1': {
+        title: 'Project Phoenix - Analytics Dashboard',
+        desc: 'Interactive operational KPIs, request telemetry, and traffic analytics created with Lavish.',
+        badge: 'Analytics',
+        color: 'badge-primary'
+      },
+      'web2': {
+        title: 'Project Orion - Security & Audit',
+        desc: 'Security posture review, Cognito session claim inspector, and compliance checklist.',
+        badge: 'Security',
+        color: 'badge-secondary'
+      },
+      'web3': {
+        title: 'Project Nebula - Service Mesh Telemetry',
+        desc: 'Distributed microservice latency metrics and VPC endpoint throughput monitor.',
+        badge: 'Telemetry',
+        color: 'badge-accent'
+      }
+    };
+
+    async function fetchCatalog() {
+      const loader = document.getElementById('loadingIndicator');
+      const grid = document.getElementById('cardsGrid');
+      const empty = document.getElementById('emptyState');
+      const lastUpdated = document.getElementById('lastUpdated');
+
+      loader.classList.remove('hidden');
+      grid.classList.add('hidden');
+      empty.classList.add('hidden');
+      lastUpdated.innerText = 'Scanning S3 bucket prefixes...';
+
+      try {
+        // Query S3 ListObjectsV2 via ALB S3 VPC Endpoint
+        // Delimiter=/ returns top-level folders in <CommonPrefixes><Prefix>folder/</Prefix></CommonPrefixes>
+        const response = await fetch('/?list-type=2&delimiter=/', { cache: 'no-store' });
+        
+        if (!response.ok) {
+          throw new Error('HTTP ' + response.status + ' ' + response.statusText);
+        }
+
+        const xmlText = await response.text();
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
+
+        const prefixNodes = xmlDoc.getElementsByTagName('CommonPrefixes');
+        const prefixes = [];
+
+        for (let i = 0; i < prefixNodes.length; i++) {
+          const p = prefixNodes[i].getElementsByTagName('Prefix')[0]?.textContent;
+          if (p) {
+            const cleanPrefix = p.replace(/\/$/, '');
+            // Ignore the 'main' folder itself
+            if (cleanPrefix && cleanPrefix !== 'main') {
+              prefixes.push(cleanPrefix);
+            }
+          }
+        }
+
+        // Also check if any direct subfolders exist or fallback if S3 ListBucket returned fewer
+        if (prefixes.length === 0) {
+          for (const testPrefix of ['web1', 'web2', 'web3']) {
+            try {
+              const testResp = await fetch(`/${testPrefix}/index.html`, { method: 'HEAD' });
+              if (testResp.ok) prefixes.push(testPrefix);
+            } catch (e) {}
+          }
+        }
+
+        discoveredApps = prefixes;
+        await renderGrid(prefixes);
+
+        document.getElementById('siteCount').innerText = prefixes.length;
+        lastUpdated.innerText = 'Last synced: ' + new Date().toLocaleTimeString();
+
+      } catch (err) {
+        console.warn('Direct S3 ListBucket query error, falling back to probing:', err);
+        const probed = [];
+        for (let n = 1; n <= 10; n++) {
+          const key = 'web' + n;
+          try {
+            const res = await fetch(`/${key}/index.html`, { method: 'HEAD' });
+            if (res.ok) probed.push(key);
+          } catch (e) {}
+        }
+        discoveredApps = probed;
+        await renderGrid(probed);
+        document.getElementById('siteCount').innerText = probed.length;
+        lastUpdated.innerText = 'Probed (last: ' + new Date().toLocaleTimeString() + ')';
+      } finally {
+        loader.classList.add('hidden');
+        if (discoveredApps.length > 0) {
+          grid.classList.remove('hidden');
+        } else {
+          empty.classList.remove('hidden');
+        }
+      }
+    }
+
+    async function renderGrid(prefixes) {
+      const grid = document.getElementById('cardsGrid');
+      grid.innerHTML = '';
+
+      for (const prefix of prefixes) {
+        const info = KNOWN_METADATA[prefix] || {
+          title: `Application - /${prefix}`,
+          desc: `Dynamically discovered web application deployed under /${prefix}/index.html`,
+          badge: 'Dynamic App',
+          color: 'badge-info'
+        };
+
+        const card = document.createElement('div');
+        card.className = 'card card-border bg-base-100 shadow hover:shadow-lg transition-all duration-200 app-card flex flex-col justify-between';
+        card.setAttribute('data-search', `${prefix} ${info.title} ${info.desc}`.toLowerCase());
+
+        card.innerHTML = `
+          <div class="card-body p-6 flex flex-col justify-between h-full">
+            <div>
+              <div class="flex items-start justify-between gap-2 mb-3">
+                <span class="badge ${info.color} badge-soft badge-sm font-semibold">${info.badge}</span>
+                <span class="badge badge-success badge-xs py-1 px-2">Online</span>
+              </div>
+              <h2 class="card-title text-lg font-bold tracking-tight text-base-content">${info.title}</h2>
+              <p class="text-xs text-base-content/70 mt-2 leading-relaxed">${info.desc}</p>
+              <div class="mt-4 p-2 bg-base-200/60 rounded-lg text-xs font-mono text-base-content/80 flex items-center justify-between">
+                <span>/${prefix}/index.html</span>
+                <span class="badge badge-ghost badge-xs">S3 Key</span>
+              </div>
+            </div>
+            <div class="card-actions justify-end mt-6 pt-4 border-t border-base-content/5">
+              <a href="/${prefix}/index.html" class="btn btn-primary btn-sm w-full gap-2 font-medium">
+                <span>Open Application</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </a>
+            </div>
+          </div>
+        `;
+        grid.appendChild(card);
+      }
+    }
+
+    function filterCards() {
+      const q = document.getElementById('searchInput').value.toLowerCase().trim();
+      const cards = document.querySelectorAll('.app-card');
+      let visible = 0;
+      cards.forEach(card => {
+        const text = card.getAttribute('data-search') || '';
+        if (text.includes(q)) {
+          card.style.display = 'flex';
+          visible++;
+        } else {
+          card.style.display = 'none';
+        }
+      });
+      document.getElementById('emptyState').classList.toggle('hidden', visible > 0);
+    }
+
+    window.addEventListener('DOMContentLoaded', fetchCatalog);
+  </script>
+</body>
+</html>
