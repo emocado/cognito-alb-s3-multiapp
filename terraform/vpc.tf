@@ -33,9 +33,9 @@ resource "aws_subnet" "public" {
   }
 }
 
-# 2 Private Subnets across 2 AZs for the S3 Interface VPC Endpoint
+# Private Subnet for the S3 Interface VPC Endpoint (1 AZ for POC cost optimization)
 resource "aws_subnet" "private" {
-  count             = 2
+  count             = 1
   vpc_id            = aws_vpc.main.id
   cidr_block        = cidrsubnet(aws_vpc.main.cidr_block, 8, count.index + 11)
   availability_zone = data.aws_availability_zones.available.names[count.index]
@@ -75,7 +75,7 @@ resource "aws_route_table" "private" {
 }
 
 resource "aws_route_table_association" "private" {
-  count          = 2
+  count          = length(aws_subnet.private)
   subnet_id      = aws_subnet.private[count.index].id
   route_table_id = aws_route_table.private.id
 }

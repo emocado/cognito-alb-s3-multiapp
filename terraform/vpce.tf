@@ -14,7 +14,7 @@ resource "aws_vpc_endpoint" "s3" {
 
 # Lookup ENI network interfaces created by the Interface VPC Endpoint to retrieve private IPs
 data "aws_network_interface" "s3_vpce" {
-  count = 2
+  count = length(aws_subnet.private)
 
   filter {
     name   = "subnet-id"

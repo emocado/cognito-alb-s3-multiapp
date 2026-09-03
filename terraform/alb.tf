@@ -25,7 +25,7 @@ resource "aws_lb_target_group" "s3_vpce" {
 
 # Attach each S3 Interface VPC Endpoint ENI private IP to the Target Group
 resource "aws_lb_target_group_attachment" "s3_vpce" {
-  count            = 2
+  count            = length(aws_subnet.private)
   target_group_arn = aws_lb_target_group.s3_vpce.arn
   target_id        = data.aws_network_interface.s3_vpce[count.index].private_ip
   port             = 80
